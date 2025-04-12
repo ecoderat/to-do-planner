@@ -25,7 +25,9 @@ func InitDB() {
 		log.Fatal("DATABASE_URL not set in environment variables.")
 	}
 
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -33,7 +35,7 @@ func InitDB() {
 	fmt.Println("Connected to the database!")
 
 	// Auto Migrate the schemas
-	err = DB.AutoMigrate(&model.Task{}, &model.Developer{})
+	err = DB.AutoMigrate(&model.Provider{}, &model.Task{}, &model.Developer{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
