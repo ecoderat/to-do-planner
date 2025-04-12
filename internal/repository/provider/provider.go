@@ -12,6 +12,7 @@ import (
 
 type Repository interface {
 	GetProviders(ctx context.Context) ([]domain.ProviderConfig, error)
+	GetProvider(ctx context.Context, name string) (domain.ProviderConfig, error)
 	Create(ctx context.Context, provider domain.ProviderConfig) error
 }
 
@@ -31,7 +32,6 @@ func (r *ProviderRepository) Create(ctx context.Context, provider domain.Provide
 	modelProvider.Name = provider.ProviderName
 	modelProvider.APIURL = provider.APIURL
 
-	// convert domain.ResponseKeys to JSON string
 	responseKeys, err := json.Marshal(provider.ResponseKeys)
 	if err != nil {
 		return err
@@ -60,7 +60,21 @@ func (r *ProviderRepository) GetProviders(ctx context.Context) ([]domain.Provide
 	return convertToDomainProviderConfigs(providers), nil
 }
 
-// convert model.Provider.ResponseKeys to domain.ResponseKeys
+func (r *ProviderRepository) GetProvider(ctx context.Context, name string) (domain.ProviderConfig, error) {
+	var provider model.Provider
+
+	err := r.db.WithContext(ctx).
+		Model(&model.Provider{}).
+		Where("name = ?", name).
+		First(&provider).
+		Error
+	if err != nil {
+		return domain.ProviderConfig{}, err
+	}
+
+	return convertToDomainProviderConfig(provider), nil
+}
+
 func convertToDomainResponseKeys(provider model.Provider) domain.ResponseKeys {
 	var keys domain.ResponseKeys
 	err := json.Unmarshal([]byte(provider.ResponseKeys), &keys)
@@ -70,7 +84,6 @@ func convertToDomainResponseKeys(provider model.Provider) domain.ResponseKeys {
 	return keys
 }
 
-// convert model.Provider to domain.ProviderConfig
 func convertToDomainProviderConfig(providers model.Provider) domain.ProviderConfig {
 	return domain.ProviderConfig{
 		ProviderName: providers.Name,
@@ -79,7 +92,6 @@ func convertToDomainProviderConfig(providers model.Provider) domain.ProviderConf
 	}
 }
 
-// convert []model.Provider to []domain.ProviderConfig
 func convertToDomainProviderConfigs(providers []model.Provider) []domain.ProviderConfig {
 	var domainProviders []domain.ProviderConfig
 	for _, provider := range providers {
