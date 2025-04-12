@@ -4,9 +4,14 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+
+	"to-do-planner/internal/db"
 )
 
 func main() {
+	// Initialize the database connection
+	db.InitDB()
+
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
