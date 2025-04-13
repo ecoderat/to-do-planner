@@ -1,4 +1,4 @@
-package mapped
+package provider
 
 import (
 	"context"
@@ -12,23 +12,23 @@ import (
 	"to-do-planner/internal/domain"
 )
 
-type MappedProvider struct {
+type Provider struct {
 	Config *domain.ProviderConfig
 	Client *http.Client
 }
 
-func NewMappedProvider(config *domain.ProviderConfig) domain.Provider {
-	return &MappedProvider{
+func New(config *domain.ProviderConfig) domain.Provider {
+	return &Provider{
 		Config: config,
 		Client: &http.Client{},
 	}
 }
 
-func (mp *MappedProvider) Name() string {
+func (mp *Provider) Name() string {
 	return mp.Config.ProviderName
 }
 
-func (mp *MappedProvider) FetchTasks(ctx context.Context) ([]domain.Task, error) {
+func (mp *Provider) FetchTasks(ctx context.Context) ([]domain.Task, error) {
 	log.Infof("Fetching tasks from %s", mp.Config.APIURL)
 	// Create a new HTTP request with the context
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mp.Config.APIURL, nil)
@@ -60,9 +60,10 @@ func (mp *MappedProvider) FetchTasks(ctx context.Context) ([]domain.Task, error)
 
 	for _, item := range taskItems.Array() {
 		task := domain.Task{
-			Name:       item.Get(mp.Config.ResponseKeys.TaskNameField).String(),
-			Duration:   int(item.Get(mp.Config.ResponseKeys.DurationField).Int()),
-			Difficulty: int(item.Get(mp.Config.ResponseKeys.DifficultyField).Int()),
+			Name:         item.Get(mp.Config.ResponseKeys.TaskNameField).String(),
+			Duration:     int(item.Get(mp.Config.ResponseKeys.DurationField).Int()),
+			Difficulty:   int(item.Get(mp.Config.ResponseKeys.DifficultyField).Int()),
+			ProviderName: mp.Config.ProviderName,
 		}
 		tasks = append(tasks, task)
 	}

@@ -34,9 +34,12 @@ func New(db *gorm.DB) *Config {
 		Task:     taskRepo,
 	}
 
+	providerService := providerservice.New(cfg.Repositories.Provider)
+	taskService := taskservice.New(cfg.Repositories.Task, providerService)
+
 	cfg.Services = Services{
-		Provider: providerservice.New(cfg.Repositories.Provider),
-		Task:     taskservice.New(cfg.Repositories.Task),
+		Provider: providerService,
+		Task:     taskService,
 	}
 
 	return cfg

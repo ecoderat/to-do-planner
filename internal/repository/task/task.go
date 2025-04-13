@@ -2,13 +2,18 @@ package task
 
 import (
 	"context"
-	"to-do-planner/internal/domain"
+	"fmt"
 
 	"gorm.io/gorm"
+
+	"to-do-planner/internal/domain"
+	"to-do-planner/internal/model"
 )
 
 type Repository interface {
 	GetTasks(ctx context.Context) ([]domain.Task, error)
+	CreateTasks(ctx context.Context, tasks []domain.Task) error
+	DeleteAllTasks(ctx context.Context) error
 }
 
 type TaskRepository struct {
@@ -35,4 +40,34 @@ func (r *TaskRepository) GetTasks(ctx context.Context) ([]domain.Task, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *TaskRepository) CreateTasks(ctx context.Context, tasks []domain.Task) error {
+	modelTasks := make([]model.Task, len(tasks))
+	for i, task := range tasks {
+		modelTasks[i] = model.Task{
+			Name:         task.Name,
+			Duration:     task.Duration,
+			Difficulty:   task.Difficulty,
+			ProviderName: task.ProviderName,
+		}
+	}
+
+	err := r.db.WithContext(ctx).
+		Create(&modelTasks).Error
+	if err != nil {
+		fmt.Println("Create error:", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *TaskRepository) DeleteAllTasks(ctx context.Context) error {
+	err := r.db.Debug().Exec(`DELETE FROM "tasks"`).Error
+	if err != nil {
+		fmt.Println("Delete error:", err)
+		return err
+	}
+	return nil
 }
