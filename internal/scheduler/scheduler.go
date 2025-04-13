@@ -4,17 +4,14 @@ import (
 	"sort"
 )
 
+const MaxWeeklyHours = 45 // 5 days * 9 hours
+
 type Scheduler interface {
-	// Schedule returns a list of schedules (task-to-developer assignments)
 	ScheduleTasks(tasks []Task, devs []Developer) []ScheduleSlot
 }
 
-// defaultScheduler is a basic implementation of the Scheduler interface.
-type scheduler struct {
-	// You can add dependencies or configs here if needed
-}
+type scheduler struct{}
 
-// NewScheduler constructs a defaultScheduler or any other implementation.
 func NewScheduler() Scheduler {
 	return &scheduler{}
 }
@@ -55,7 +52,7 @@ func (s *scheduler) ScheduleTasks(tasks []Task, developers []Developer) []Schedu
 
 	for len(tasks) > 0 {
 		for _, dev := range developers {
-			devWeeklyCapacity := dev.Capacity * 45
+			devWeeklyCapacity := dev.Capacity * MaxWeeklyHours
 			used := 0
 			assigned := []Task{}
 

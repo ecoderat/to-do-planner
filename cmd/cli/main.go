@@ -13,13 +13,6 @@ import (
 	service "to-do-planner/internal/service/provider"
 )
 
-// Version: 1.0
-// This CLI has the following commands:
-//  1) list task
-//  2) list provider
-//  3) add provider
-//  4) schedule
-
 func main() {
 	db.InitDB()
 
@@ -66,8 +59,19 @@ func main() {
 			os.Exit(1)
 		}
 
-	case "schedule":
-		scheduleWeeklyPlans()
+	case "load":
+		// e.g. "load task"
+		if len(os.Args) < 3 {
+			fmt.Println(`Usage: cli load <task>`)
+			os.Exit(1)
+		}
+		switch os.Args[2] {
+		case "task":
+			loadTasks(cfg)
+		default:
+			fmt.Printf("Unknown load command: %s\n", os.Args[2])
+			os.Exit(1)
+		}
 
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
@@ -76,11 +80,10 @@ func main() {
 	}
 }
 
-// listTasks prints a placeholder for listing task.
 func listTasks(cfg *config.Config) {
 	task, err := cfg.Services.Task.GetTasks(context.Background())
 	if err != nil {
-		fmt.Println("Error fetching task:", err)
+		fmt.Println("Error loading task:", err)
 		return
 	}
 
@@ -90,11 +93,10 @@ func listTasks(cfg *config.Config) {
 	}
 }
 
-// listProviders prints a placeholder for listing provider.
 func listProviders(cfg *config.Config) {
 	provider, err := cfg.Services.Provider.GetProviders(context.Background())
 	if err != nil {
-		fmt.Println("Error fetching provider:", err)
+		fmt.Println("Error loading provider:", err)
 		return
 	}
 
@@ -104,7 +106,6 @@ func listProviders(cfg *config.Config) {
 	}
 }
 
-// addProvider prints a placeholder for adding a provider from JSON.
 func addProvider(cfg *config.Config, jsonData string) {
 	var provider service.Provider
 	err := json.Unmarshal([]byte(jsonData), &provider)
@@ -121,10 +122,13 @@ func addProvider(cfg *config.Config, jsonData string) {
 	log.Printf("Provider created: %+v", provider)
 }
 
-// scheduleWeeklyPlans prints a placeholder for scheduling.
-func scheduleWeeklyPlans() {
-	fmt.Println("[SCHEDULE] Weekly plan scheduling not yet implemented.")
-	// TODO: Implement scheduling logic.
+func loadTasks(cfg *config.Config) {
+	err := cfg.Services.Task.LoadTasks(context.Background())
+	if err != nil {
+		fmt.Println("Error loading tasks:", err)
+		return
+	}
+	log.Println("Tasks loaded successfully")
 }
 
 // printUsage shows available top-level commands.
@@ -132,12 +136,12 @@ func printUsage() {
 	fmt.Println(`Usage:
   cli list <task|provider>
   cli add <provider> [--json='{"name":"..."}']
-  cli schedule
+  cli load <task>
 
 Examples:
   cli list task
   cli list provider
   cli add provider --json='{"name":"NewProvider","api_url":"/api/new"}'
-  cli schedule
+  cli load task
 `)
 }

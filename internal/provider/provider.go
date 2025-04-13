@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/tidwall/gjson"
 
 	"to-do-planner/internal/domain"
@@ -29,8 +28,6 @@ func (mp *Provider) Name() string {
 }
 
 func (mp *Provider) FetchTasks(ctx context.Context) (domain.Tasks, error) {
-	log.Infof("Fetching tasks from %s", mp.Config.APIURL)
-	// Create a new HTTP request with the context
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mp.Config.APIURL, nil)
 	if err != nil {
 		return nil, err
