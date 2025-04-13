@@ -39,8 +39,46 @@ func InitDB() {
 	if err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
+
+	// Seed the database with initial data
+	seedDevelopers(DB)
+	seedProviders(DB)
+	fmt.Println("Database migrated successfully!")
 }
 
 func GetDB() *gorm.DB {
 	return DB
+}
+
+func seedDevelopers(db *gorm.DB) {
+	developers := []model.Developer{
+		{Name: "DEV1", Capacity: 1},
+		{Name: "DEV2", Capacity: 2},
+		{Name: "DEV3", Capacity: 3},
+		{Name: "DEV4", Capacity: 4},
+		{Name: "DEV5", Capacity: 5},
+	}
+
+	for _, dev := range developers {
+		db.FirstOrCreate(&model.Developer{}, model.Developer{Name: dev.Name, Capacity: dev.Capacity})
+	}
+}
+
+func seedProviders(db *gorm.DB) {
+	providers := []model.Provider{
+		{
+			Name:         "Provider1",
+			APIURL:       "https://raw.githubusercontent.com/WEG-Technology/mock/refs/heads/main/mock-one",
+			ResponseKeys: "{\"hasKeyOfTaskList\": false,\"keyOfTaskList\": \"\",\"taskNameField\": \"id\",\"durationField\": \"estimated_duration\",\"difficultyField\": \"value\"}",
+		},
+		{
+			Name:         "Provider2",
+			APIURL:       "https://raw.githubusercontent.com/WEG-Technology/mock/refs/heads/main/mock-two",
+			ResponseKeys: "{\"hasKeyOfTaskList\": false,\"keyOfTaskList\": \"\",\"taskNameField\": \"id\",\"durationField\": \"sure\",\"difficultyField\": \"zorluk\"}",
+		},
+	}
+
+	for _, provider := range providers {
+		db.FirstOrCreate(&model.Provider{}, model.Provider{Name: provider.Name, APIURL: provider.APIURL, ResponseKeys: provider.ResponseKeys})
+	}
 }
