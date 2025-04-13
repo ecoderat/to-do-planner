@@ -33,7 +33,7 @@ func (r *TaskRepository) GetTasks(ctx context.Context) ([]domain.Task, error) {
 	err := r.db.WithContext(ctx).
 		Table("tasks").
 		Select("tasks.id, tasks.name, tasks.duration, tasks.difficulty, providers.name as provider_name").
-		Joins("left join providers on providers.id = tasks.provider_id").
+		Joins("left join providers on providers.name = tasks.provider_name").
 		Scan(&result).Error
 
 	if err != nil {
@@ -43,6 +43,10 @@ func (r *TaskRepository) GetTasks(ctx context.Context) ([]domain.Task, error) {
 }
 
 func (r *TaskRepository) CreateTasks(ctx context.Context, tasks []domain.Task) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
 	modelTasks := make([]model.Task, len(tasks))
 	for i, task := range tasks {
 		modelTasks[i] = model.Task{

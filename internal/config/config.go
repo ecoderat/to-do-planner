@@ -24,7 +24,7 @@ type Repositories struct {
 	Task     taskrepo.Repository
 }
 
-func New(db *gorm.DB) *Config {
+func Load(db *gorm.DB) *Config {
 	cfg := &Config{}
 	providerRepo := providerrepo.NewProviderRepository(db)
 	taskRepo := taskrepo.NewTaskRepository(db)

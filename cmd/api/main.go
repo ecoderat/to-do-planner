@@ -15,7 +15,7 @@ func main() {
 
 	app := fiber.New()
 
-	cfg := config.New(db.DB)
+	cfg := config.Load(db.DB)
 
 	router.RegisterRoutes(app, cfg)
 
