@@ -28,7 +28,7 @@ func (mp *Provider) Name() string {
 	return mp.Config.ProviderName
 }
 
-func (mp *Provider) FetchTasks(ctx context.Context) ([]domain.Task, error) {
+func (mp *Provider) FetchTasks(ctx context.Context) (domain.Tasks, error) {
 	log.Infof("Fetching tasks from %s", mp.Config.APIURL)
 	// Create a new HTTP request with the context
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, mp.Config.APIURL, nil)
@@ -46,7 +46,7 @@ func (mp *Provider) FetchTasks(ctx context.Context) ([]domain.Task, error) {
 		return nil, err
 	}
 
-	var tasks []domain.Task
+	var tasks domain.Tasks
 	result := gjson.ParseBytes(body)
 
 	taskItems := result

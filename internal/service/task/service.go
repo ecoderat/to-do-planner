@@ -5,24 +5,31 @@ import (
 
 	"to-do-planner/internal/domain"
 	"to-do-planner/internal/provider"
+	"to-do-planner/internal/repository/developer"
 	taskrepo "to-do-planner/internal/repository/task"
+	"to-do-planner/internal/scheduler"
 	providerservice "to-do-planner/internal/service/provider"
 )
 
 type Service interface {
 	GetTasks(ctx context.Context) ([]Task, error)
 	LoadTasks(ctx context.Context) error
+	ScheduleTasks(ctx context.Context) ([]domain.ScheduleSlot, error)
 }
 
 type taskService struct {
-	taskRepository  taskrepo.Repository
-	providerService providerservice.Service
+	taskRepository      taskrepo.Repository
+	providerService     providerservice.Service
+	developerRepository developer.Repository
+	scheduler           scheduler.Scheduler
 }
 
-func New(taskRepository taskrepo.Repository, providerService providerservice.Service) Service {
+func New(taskRepository taskrepo.Repository, providerService providerservice.Service, developerRepository developer.Repository, scheduler scheduler.Scheduler) Service {
 	return &taskService{
-		taskRepository:  taskRepository,
-		providerService: providerService,
+		taskRepository:      taskRepository,
+		providerService:     providerService,
+		developerRepository: developerRepository,
+		scheduler:           scheduler,
 	}
 }
 
@@ -58,7 +65,7 @@ func (s *taskService) LoadTasks(ctx context.Context) error {
 		return err
 	}
 
-	var tasks []domain.Task
+	var tasks domain.Tasks
 	for _, p := range providers {
 		provider := provider.New(&domain.ProviderConfig{
 			ProviderName: p.ProviderName,
@@ -93,4 +100,45 @@ func (s *taskService) LoadTasks(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *taskService) ScheduleTasks(ctx context.Context) ([]domain.ScheduleSlot, error) {
+	tasks, err := s.taskRepository.GetTasks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	developers, err := s.developerRepository.GetDevelopers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	schedules := s.scheduler.ScheduleTasks(tasks.ToSchedularTasks(), developers.ToSchedularDevelopers())
+
+	var scheduleSlots []domain.ScheduleSlot
+	for _, schedule := range schedules {
+		scheduleSlots = append(scheduleSlots, domain.ScheduleSlot{
+			Week: schedule.Week,
+			Developer: domain.Developer{
+				Name:     schedule.Developer.Name,
+				Capacity: schedule.Developer.Capacity,
+			},
+			Tasks:    convertSchedulerTasksToDomainTasks(schedule.Tasks),
+			LoadUsed: schedule.LoadUsed,
+		})
+	}
+
+	return scheduleSlots, nil
+}
+
+func convertSchedulerTasksToDomainTasks(schedulerTasks []scheduler.Task) domain.Tasks {
+	var domainTasks domain.Tasks
+	for _, t := range schedulerTasks {
+		domainTasks = append(domainTasks, domain.Task{
+			Name:       t.Name,
+			Duration:   t.Duration,
+			Difficulty: t.Difficulty,
+		})
+	}
+	return domainTasks
 }

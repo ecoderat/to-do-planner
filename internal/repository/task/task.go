@@ -11,8 +11,8 @@ import (
 )
 
 type Repository interface {
-	GetTasks(ctx context.Context) ([]domain.Task, error)
-	CreateTasks(ctx context.Context, tasks []domain.Task) error
+	GetTasks(ctx context.Context) (domain.Tasks, error)
+	CreateTasks(ctx context.Context, tasks domain.Tasks) error
 	DeleteAllTasks(ctx context.Context) error
 }
 
@@ -27,8 +27,8 @@ func NewTaskRepository(db *gorm.DB) *TaskRepository {
 	return &TaskRepository{db: db}
 }
 
-func (r *TaskRepository) GetTasks(ctx context.Context) ([]domain.Task, error) {
-	var result []domain.Task
+func (r *TaskRepository) GetTasks(ctx context.Context) (domain.Tasks, error) {
+	var result domain.Tasks
 
 	err := r.db.WithContext(ctx).
 		Table("tasks").
@@ -42,7 +42,7 @@ func (r *TaskRepository) GetTasks(ctx context.Context) ([]domain.Task, error) {
 	return result, nil
 }
 
-func (r *TaskRepository) CreateTasks(ctx context.Context, tasks []domain.Task) error {
+func (r *TaskRepository) CreateTasks(ctx context.Context, tasks domain.Tasks) error {
 	if len(tasks) == 0 {
 		return nil
 	}

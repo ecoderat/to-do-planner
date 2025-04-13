@@ -11,6 +11,7 @@ import (
 type TaskController interface {
 	GetTasks(*fiber.Ctx) error
 	LoadTasks(*fiber.Ctx) error
+	ScheduleTasks(*fiber.Ctx) error
 }
 
 type taskController struct {
@@ -41,4 +42,13 @@ func (ctrl *taskController) LoadTasks(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
+}
+
+func (ctrl *taskController) ScheduleTasks(c *fiber.Ctx) error {
+	schedule, err := ctrl.taskService.ScheduleTasks(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Error scheduling tasks")
+	}
+
+	return c.JSON(schedule)
 }

@@ -24,4 +24,6 @@ func RegisterRoutes(app *fiber.App, cfg *config.Config) {
 
 	app.Get("/task", taskController.GetTasks)
 	app.Get("/task-load", taskController.LoadTasks)
+
+	app.Get("/schedule", taskController.ScheduleTasks)
 }

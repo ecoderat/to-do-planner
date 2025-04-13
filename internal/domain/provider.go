@@ -17,6 +17,6 @@ type ProviderConfig struct {
 }
 
 type Provider interface {
-	FetchTasks(ctx context.Context) ([]Task, error)
+	FetchTasks(ctx context.Context) (Tasks, error)
 	Name() string
 }
