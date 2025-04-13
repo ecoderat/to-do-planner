@@ -12,18 +12,18 @@ import (
 func RegisterRoutes(app *fiber.App, cfg *config.Config) {
 	cors := cors.New()
 
-	router := app.Group("/api")
+	router := app.Group("/")
 
 	router.Use(cors)
 
 	providerController := providerctrl.New(*cfg)
 	taskController := taskctrl.New(*cfg)
 
-	app.Get("/provider", providerController.GetProviders)
-	app.Post("/provider", providerController.CreateProvider)
+	router.Get("/provider", providerController.GetProviders)
+	router.Post("/provider", providerController.CreateProvider)
 
-	app.Get("/task", taskController.GetTasks)
-	app.Get("/task-load", taskController.LoadTasks)
+	router.Get("/task", taskController.GetTasks)
+	router.Get("/task-load", taskController.LoadTasks)
 
-	app.Get("/schedule", taskController.ScheduleTasks)
+	router.Get("/schedule", taskController.ScheduleTasks)
 }
